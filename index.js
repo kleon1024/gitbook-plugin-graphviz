@@ -21,6 +21,7 @@ function processBlock(blk) {
         engine = config.engine;
 
     var result = vizjs(code, { format: format, engine: engine})
+    result = result.replace(/<svg width="(.*)" height="(.*)"/, '<svg style="max-width:$1;max-height:$2" preserveAspectRatio="xMinYMin meet"')
     deferred.resolve(result);
     return deferred.promise;
 }
