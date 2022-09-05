@@ -58,7 +58,7 @@ function processBlock(blk) {
 
     var result = vizjs(code, { format: format, engine: engine})
     result = result.replace(/<svg width="(.*)" height="(.*)"/, '<svg style="max-width:$1;max-height:$2" preserveAspectRatio="xMinYMin meet"')
-    result = result.replaceAll('xlink:href', 'href')
+    result = result.replace(/xlink:href/g, 'href')
     deferred.resolve(result);
     return deferred.promise;
 }
