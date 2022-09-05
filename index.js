@@ -17,7 +17,7 @@ node_attr = {
     shape:"box",
     penwidth:"3",
     fontname:fontname,
-    style:"filled",
+    style:"filled", 
 }
 edge_attr = {
     penwidth:"3",
@@ -157,6 +157,7 @@ module.exports = {
                     g += `graph [${render_attr(graph_attr)}]\n`
                     g += `node [${render_attr(node_attr)}]\n`
                     g += `edge [${render_attr(edge_attr)}]\n`
+                    g += 's1,s2,e1,e2,start,end [style=invis]\n'
                     node_cnt = 0;
                     sub_node_cnt = 0;
                     for (const [k, v] of Object.entries(d)) {
@@ -185,6 +186,10 @@ module.exports = {
                         });
                         node_cnt += 1
                     }
+                    g += 's1->start->s2 [style=invis]\n'
+                    g += 'e1->end->e2 [style=invis]\n'
+                    g += `mn0->start [${render_attr(sub_edge_attr)} constraint=false]\n`
+                    g += `end->mn${Object.keys(d).length-1} [${render_attr(sub_edge_attr)} constraint=false]\n`
                     g += '}\n';
                     page.content = page.content.replace(
                         umls[i],
