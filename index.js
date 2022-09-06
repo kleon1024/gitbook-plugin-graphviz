@@ -1,6 +1,7 @@
 var Q = require('q');
 var vizjs = require('viz.js');
 var yaml = require('js-yaml');
+var slugify = require('markdown-slug');
 
 // var ASSET_PATH = 'assets/images/graphviz/';
 
@@ -164,7 +165,8 @@ module.exports = {
                         ret = extract_attr(k);
                         nk = ret[0]
                         attr = ret[1]
-                        g += `mn${node_cnt} [label="${nk}" width=${width(nk.length)} ${render_attr(main_node_attr)} ${attr}]\n`
+                        link = slugify(nk)
+                        g += `mn${node_cnt} [label="${nk}" width=${width(nk.length)} URL="#${link}" ${render_attr(main_node_attr)} ${attr}]\n`
                         if (node_cnt > 0) {
                         g += `mn${node_cnt}->mn${node_cnt-1} [${render_attr(main_edge_attr)}]\n`
                         }
@@ -176,7 +178,8 @@ module.exports = {
                             ret = extract_attr(n);
                             nn = ret[0]
                             attr = ret[1]
-                            g += `sn${sub_node_cnt} [label="${nn}" width=${width(maxl)} ${render_attr(sub_node_attr)} ${attr}]\n`
+                            link = slugify(nn)
+                            g += `sn${sub_node_cnt} [label="${nn}" width=${width(maxl)} URL="#${link}" ${render_attr(sub_node_attr)} ${attr}]\n`
                             if (i < Math.floor(v.length/2)) {
                                 g += `sn${sub_node_cnt}:e->mn${node_cnt}:w [${render_attr(sub_edge_attr)}]\n`
                             } else {
