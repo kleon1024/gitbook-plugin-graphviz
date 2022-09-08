@@ -5,6 +5,8 @@ var slugify = require('markdown-slug');
 
 // var ASSET_PATH = 'assets/images/graphviz/';
 
+twrap = 16
+
 fontname = 'helvetica-bold'
 graph_attr = {
     compound: true,
@@ -91,6 +93,55 @@ function extract_attr(k) {
     return [k.trim(), attrs[0]]
 }
 
+function escapeHtml(unsafe) {
+    return unsafe
+         .replace(/&/g, "&amp;")
+         .replace(/</g, "&lt;")
+         .replace(/>/g, "&gt;")
+         .replace(/"/g, "&quot;")
+         .replace(/'/g, "&#039;");
+ }
+
+function build_table(name, values) {
+    var t = `<<TABLE border="0" cellspacing="5" cellborder="2">`
+    t += `<TR><TD border="0" colspan="${twrap}"> ${escapeHtml(name)} </TD></TR>`
+    var groups = [];
+    var group = [];
+    var cnt = 0;
+    for (let i = 0; i < values.length; i++) {
+        cnt += values[i].length;
+        if (cnt > twrap) {
+            if (group.length == 0) {
+                groups.push([values[i]]);
+            } else {
+                groups.push(group);
+                group = [values[i]];
+            }
+            cnt = 0;
+        } else {
+            group.push(values[i])
+        }
+    }
+    if (group.length > 0) {
+        groups.push(group);
+    }
+    for (let i = 0; i < groups.length; i++) {
+        t += `<TR>`
+        cnt = 0
+        for (let j = 0; j < groups[i].length; j++) {
+            span = groups[i][j].length
+            if (j == groups[i].length - 1) {
+                span = twrap - cnt
+            }
+            cnt += span
+            t += `<TD colspan="${span}" bgcolor="white"> ${escapeHtml(groups[i][j])} </TD>`
+        }
+        t += `</TR>`
+    }
+    t += `</TABLE>>`
+    return t
+}
+
 module.exports = {
     blocks: {
         graphviz: {
@@ -159,6 +210,7 @@ module.exports = {
                     g += `node [${render_attr(node_attr)}]\n`
                     g += `edge [${render_attr(edge_attr)}]\n`
                     g += 's1,s2,e1,e2,start,end [style=invis]\n'
+                    // g += 's1 [label="Find the detail of this roadmap\nand more other roadmaps👉" width="4" margin="0,0.5" fontsize="24" style=box URL="https://blog.kleon.space/books/roadmap"]'
                     node_cnt = 0;
                     sub_node_cnt = 0;
                     for (const [k, v] of Object.entries(d)) {
@@ -168,19 +220,39 @@ module.exports = {
                         link = slugify(nk)
                         g += `mn${node_cnt} [label="${nk}" width=${width(nk.length)} URL="#${link}" ${render_attr(main_node_attr)} ${attr}]\n`
                         if (node_cnt > 0) {
-                        g += `mn${node_cnt}->mn${node_cnt-1} [${render_attr(main_edge_attr)}]\n`
+                            g += `mn${node_cnt}->mn${node_cnt-1} [${render_attr(main_edge_attr)}]\n`
+                        }
+                        if (v.length == 0) {
+                            g += `sn${sub_node_cnt} [style=invis]`
+                            g += `sn${sub_node_cnt}:e->mn${node_cnt}:w [style=invis]\n`
+                            sub_node_cnt += 1
                         }
                         maxl = Math.max(...v.map(x => {
+                            if (typeof x == 'object') {
+                                obj = x
+                                x = Object.keys(obj)[0]
+                            }
                             ret = extract_attr(x);
                             return ret[0].length
                         }));
                         v.forEach((n, i)=>{
+                            var values = [];
+                            if (typeof n == 'object') {
+                                obj = n
+                                n = Object.keys(obj)[0]
+                                values = obj[n]
+                            }
                             ret = extract_attr(n);
                             nn = ret[0]
-                            attr = ret[1]
                             link = slugify(nn)
-                            g += `sn${sub_node_cnt} [label="${nn}" width=${width(maxl)} URL="#${link}" ${render_attr(sub_node_attr)} ${attr}]\n`
-                            if (i < Math.floor(v.length/2)) {
+                            if (values.length > 0) {
+                                nn = build_table(nn, values)
+                            } else {
+                                nn = `"${nn}"`
+                            }
+                            attr = ret[1]
+                            g += `sn${sub_node_cnt} [label=${nn} width=${width(maxl)} URL="#${link}" ${render_attr(sub_node_attr)} ${attr}]\n`
+                            if (i < Math.ceil(v.length/2)) {
                                 g += `sn${sub_node_cnt}:e->mn${node_cnt}:w [${render_attr(sub_edge_attr)}]\n`
                             } else {
                                 g += `mn${node_cnt}:e->sn${sub_node_cnt}:w [${render_attr(sub_edge_attr)}]\n`
