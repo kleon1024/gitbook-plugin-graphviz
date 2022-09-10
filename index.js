@@ -213,7 +213,7 @@ module.exports = {
                     // g += 's1 [label="Find the detail of this roadmap\nand more other roadmaps👉" width="4" margin="0,0.5" fontsize="24" style=box URL="https://blog.kleon.space/books/roadmap"]'
                     node_cnt = 0;
                     sub_node_cnt = 0;
-                    for (const [k, v] of Object.entries(d)) {
+                    for ([k, v] of Object.entries(d)) {
                         ret = extract_attr(k);
                         nk = ret[0]
                         attr = ret[1]
@@ -221,6 +221,12 @@ module.exports = {
                         g += `mn${node_cnt} [label="${nk}" width=${width(nk.length)} URL="#${link}" ${render_attr(main_node_attr)} ${attr}]\n`
                         if (node_cnt > 0) {
                             g += `mn${node_cnt}->mn${node_cnt-1} [${render_attr(main_edge_attr)}]\n`
+                        }
+                        if (typeof v == 'string') {
+                            v = [v]
+                        }
+                        if (v == null) {
+                            v = []
                         }
                         if (v.length == 0) {
                             g += `sn${sub_node_cnt} [style=invis]`
